@@ -1,0 +1,28 @@
+,rule,coef
+29,HA_verb_0.0,-0.03272
+133,LOCSeparate_Yes,0.17495
+33,LOCSeparate_No,-1.00549
+184,ClavOcc_1,0.14868
+173,VomitStart_Not applicable,-0.35122
+148,HA_verb_1.0,0.00441
+138,Vomit_1.0,0.2834
+188,HemaSize_Not applicable,-0.01801
+105,ClavFace_0,0.24519
+64,OSIFlank_0,0.10054
+63,ClavTem_1,0.06781
+56,OSIPelvis_0,0.00364
+44,Clav_1.0,0.41817
+104,High_impact_InjSev_Low,-0.0165
+227,SFxPalpDepress_1.0 <= 0.5 and SFxBasRet_0 <= 0.5,-0.37934
+228,SFxBasHem_1 <= 0.5 and SFxPalp_Unclear <= 0.5,-0.01307
+224,AMSAgitated_1 <= 0.5 and SFxBasHem_1 <= 0.5 and NeuroDOth_1 <= 0.5,-0.77424
+226,SeizOccur_>30 minutes after injury <= 0.5 and AMSRepeat_1 <= 0.5 and SFxPalp_Unclear <= 0.5,-0.20552
+223,InjuryMech_PedesMV <= 0.5 and SFxPalpDepress_92.0 > 0.5 and AMSRepeat_1 <= 0.5,-0.19826
+217,SFxPalpDepress_1.0 <= 0.5 and HemaSize_Large <= 0.5,-0.31828
+218,SFxBasRhi_0 <= 0.5 and SFxPalpDepress_1.0 <= 0.5 and AMSSlow_1 <= 0.5 and InjuryMech_BikeCol <= 0.5,-0.43022
+220,SFxPalpDepress_1.0 <= 0.5 and OSIPelvis_1 <= 0.5 and VomitStart_Within 1 hr of event <= 0.5,-0.30732
+219,SFxPalpDepress_1.0 <= 0.5 and HemaLoc_Parietal/Temporal <= 0.5 and OSIPelvis_1 <= 0.5,-0.47187
+225,AMSOth_0 <= 0.5 and SeizLen_5-15 min <= 0.5,-0.24371
+221,High_impact_InjSev_High <= 0.5 and SFxBasHem_1 <= 0.5 and SeizLen_>15 min <= 0.5,-1.19374
+222,AMSRepeat_1 <= 0.5 and AMS_0.0 > 0.5 and SFxBasPer_1 <= 0.5 and SFxBasOto_0 <= 0.5 and OSICut_1 <= 0.5 and SFxBasHem_1 <= 0.5 and HASeverity_Severe <= 0.5 and ClavPar_1 <= 0.5,-1.30281
+229,SFxPalp_No <= 0.5,0.62868
