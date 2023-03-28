@@ -132,5 +132,3 @@ if __name__ == '__main__':
     pd.DataFrame(models_spec).to_csv(f"results/tbi_spec_{tpr}_rules_{max_rules}_rf.csv")
     pd.DataFrame(models_sens).to_csv(f"results/tbi_sens_{tpr}_rules_{max_rules}_rf.csv")
 
-    # pd.DataFrame(models_spec_std).to_csv(f"results/tbi_spec_std_{tpr}_rules_{max_rules}.csv")
-    # pd.DataFrame(models_sens_std).to_csv(f"results/tbi_sens_std_{tpr}_rules_{max_rules}.csv")
