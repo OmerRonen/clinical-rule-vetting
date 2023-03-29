@@ -6,7 +6,7 @@ import logging
 from functools import partial
 from glob import glob
 from os.path import join as oj
-from typing import Dict
+from typing import Dict, Tuple, Any
 
 from more_itertools import powerset
 from tqdm import tqdm
@@ -24,6 +24,8 @@ from rulevetting.api.util import get_feat_names_from_base_feats
 from vflow import init_args, Vset, build_vset
 
 LOGGER = logging.getLogger("Stability Analysis")
+
+
 # ray.init(num_cpus=4)
 
 
@@ -151,24 +153,24 @@ class Dataset:
         na_sum = na_sum[na_sum > 100]
         na_sum.reset_index(name="n")
 
-        def _get_clr(c):
-            if c in ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
-                     'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer',
-                     'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc',
-                     'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
-                     'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
-                     'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']:
-                return "green"
-            elif c in ["HASeverity", "LocLen", "LOCSeparate"]:
-                return "red"
-            return "blue"
-
-        clrs = [_get_clr(c) for c in na_sum.index]
-        na_sum.plot.bar(x='index', y='n', rot=60, fontsize=10,
-                        legend=None, figsize=(12, 12), color=clrs)
-        plt.ylabel("Number of Missing Values")
-        plt.savefig("/accounts/campus/omer_ronen/projects/rule-vetting/results/na.png", dpi=300)
-        plt.close()
+        # def _get_clr(c):
+        #     if c in ['SeizOccur', 'VomitNbr', 'VomitStart', 'VomitLast', 'AMSAgitated', 'AMSSleep',
+        #              'AMSSlow', 'AMSRepeat', 'AMSOth', 'SFxBasHem', 'SFxBasOto', 'SFxBasPer',
+        #              'SFxBasRet', 'SFxBasRhi', 'ClavFace', 'ClavNeck', 'ClavFro', 'ClavOcc',
+        #              'ClavPar', 'ClavTem', 'NeuroD', 'NeuroDMotor', 'NeuroDSensory', 'NeuroDCranial',
+        #              'NeuroDReflex', 'NeuroDOth', 'OSIExtremity', 'OSICut', 'OSICspine', 'OSIFlank',
+        #              'OSIAbdomen', 'OSIPelvis', 'OSIOth', 'High_impact_InjSev']:
+        #         return "green"
+        #     elif c in ["HASeverity", "LocLen", "LOCSeparate"]:
+        #         return "red"
+        #     return "blue"
+        #
+        # clrs = [_get_clr(c) for c in na_sum.index]
+        # na_sum.plot.bar(x='index', y='n', rot=60, fontsize=10,
+        #                 legend=None, figsize=(12, 12), color=clrs)
+        # plt.ylabel("Number of Missing Values")
+        # plt.savefig("results/na.png", dpi=300)
+        # plt.close()
 
         # dropping variables that do not influence the doctors decision
         other_vars = ['EmplType', 'Certification', 'Race']
@@ -193,13 +195,13 @@ class Dataset:
 
         most_freq = cleaned_data.apply(lambda x: x.value_counts().max() / (cleaned_data.shape[0] - x.isna().sum()))
         most_freq.reset_index(name="n")
-        clrs = [_get_clr(c) for c in most_freq.index]
-
-        most_freq.plot.bar(x='index', y='n', rot=60, fontsize=10,
-                           legend=None, figsize=(20, 12), color=clrs)
-        plt.ylabel("Proportion of Most Frequent Value")
-        plt.savefig("results/most_freq.png", dpi=300)
-        plt.close()
+        # clrs = [_get_clr(c) for c in most_freq.index]
+        #
+        # most_freq.plot.bar(x='index', y='n', rot=60, fontsize=10,
+        #                    legend=None, figsize=(20, 12), color=clrs)
+        # plt.ylabel("Proportion of Most Frequent Value")
+        # plt.savefig("results/most_freq.png", dpi=300)
+        # plt.close()
 
         if not kwargs['propensity']:
             def _drop_nas(col):
@@ -216,10 +218,11 @@ class Dataset:
                     nas = np.mean(not_nan_idx)
                     # if col not in kwargs['drop nas']:
                     if not _drop_nas(col):
-
-                        mode_fill = cleaned_data.loc[:, col].fillna(col_data.mode()[0])
-                        n_row = len(mode_fill)
-                        cleaned_data.loc[0:n_row, col] = mode_fill
+                        pass
+                        #
+                        # mode_fill = cleaned_data.loc[:, col].fillna(col_data.mode()[0])
+                        # n_row = len(mode_fill)
+                        # cleaned_data.loc[0:n_row, col] = mode_fill
 
                     # if kwargs['impute_unknowns'] == 'drop':
                     else:
@@ -268,7 +271,7 @@ class Dataset:
 
         LOGGER.info(f"Preprocessed data: {preprocessed_data.shape}")
 
-        return preprocessed_data.astype(np.float32)
+        return preprocessed_data
 
     @abstractmethod
     def extract_features(self, preprocessed_data: pd.DataFrame, **kwargs) -> pd.DataFrame:
@@ -293,7 +296,7 @@ class Dataset:
 
         return extracted_features
 
-    def split_data(self, preprocessed_data: pd.DataFrame, n: int) -> pd.DataFrame:
+    def split_data(self, preprocessed_data: pd.DataFrame) -> tuple[Any, Any, Any]:
         """Split into 3 sets: training, tuning, testing.
         Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
@@ -312,6 +315,7 @@ class Dataset:
         df_test
         """
         np.random.seed(42)
+        n = preprocessed_data.shape[0]
         indices = np.random.choice(n, size=n, replace=False)
         # LOGGER.info(indices[0:5])
         print(f"Shape: {preprocessed_data.shape}, ciTBI: {preprocessed_data.outcome.mean()}")
@@ -457,7 +461,7 @@ class Dataset:
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
-                 simple: bool = True,
+                 simple: bool = False,
                  young: bool = True,
                  old: bool = True,
                  verbal_split: bool = False,
@@ -541,7 +545,10 @@ class Dataset:
                     pre_data = pre_data.loc[pre_data['HA_verb'] == 91, :]
                     pre_data = pre_data.drop(columns=['HA_verb'])
 
+            # remove identical columns
+            pre_data = pre_data.loc[:, ~pre_data.columns.duplicated()]
             df_train, df_tune, df_test = self.split_data(pre_data)
+
 
         elif run_perturbations:
             data_path_arg = init_args([data_path], names=['data_path'])[0]
@@ -549,7 +556,7 @@ class Dataset:
             cleaned_data = clean_set(data_path_arg)
             number_of_data_points = list(cleaned_data.values())[0].shape[0]
             preprocess_set = build_vset('preprocess_data', self.preprocess_data, param_dict=kwargs['preprocess_data'],
-                                        cache_dir=CACHE_PATH,  is_async=True)
+                                        cache_dir=CACHE_PATH, is_async=True)
             preprocessed_data = preprocess_set(cleaned_data)
             extract_set = build_vset('extract_features', self.extract_features, param_dict=kwargs['extract_features'],
                                      cache_dir=CACHE_PATH)
