@@ -1,0 +1,8 @@
+,rule,coef
+126,SFxBasPer_92,-0.27202
+137,FontBulg_0.0,-0.31516
+220,SeizLen_>15 min <= 0.5,-0.35966
+218,Sedated_1.0 <= 0.5,-0.03422
+221,SFxPalpDepress_1.0 <= 0.5,-0.24131
+219,SFxBasHem_1 <= 0.5 and SFxBasRet_1 <= 0.5,-0.54148
+217,SFxBasHem_1 <= 0.5 and SFxPalpDepress_1.0 <= 0.5,-0.2353
