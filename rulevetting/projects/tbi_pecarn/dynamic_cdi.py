@@ -11,6 +11,7 @@ from imodels.tree.figs import FIGSClassifier
 from imodels import RuleFitClassifier, BayesianRuleListClassifier, GreedyRuleListClassifier
 from mlxtend.classifier import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
@@ -29,7 +30,7 @@ def get_phases(columns):
 
     phase_1_features = time_distribution[0]
     phase_2_features = time_distribution[0] + time_distribution[2]
-    phase_3_features = time_distribution[0] + time_distribution[2] + time_distribution[3]
+    phase_3_features = time_distribution[0] + time_distribution[2] + time_distribution[3] + time_distribution[4]
     for feature in phase_1_features:
         # get all columns names that start with feature
         # set of new indices
@@ -226,6 +227,8 @@ def run_sim(n_seeds, max_rules=12):
     results = {"current": copy.deepcopy(results_template), "first": copy.deepcopy(results_template)}
     for seed in range(n_seeds):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=seed)
+        print(np.sum(y_test))
+
 
         d_figs = D_FIGSClassifier(phases=phases, max_rules=max_rules)
         d_figs.feature_names_ = features_names
@@ -365,29 +368,40 @@ def get_scores(compare, phases, method_per_phase, d_figs, X_test, y_test):
 
 def make_dfigs_tree_plots():
     X, y = get_tbi_data()
+    # split to train and test
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.6, random_state=42)
+
     phases = get_phases(X.columns)
     features_names = [f"{f}_phase_{_get_phase(i, phases)}" for i, f in enumerate(X.columns)]
 
     d_figs_true = D_FIGSClassifier(phases=phases, max_rules=2)
-    d_figs_true.fit(X.values, y.values)
+    d_figs_true.fit(X_train.values, y_train.values)
     d_figs_true.feature_names_ = features_names
+
+    # calculate auroc for d_figs_true
+    auroc = roc_auc_score(y_test, d_figs_true.predict_proba(X_test.values)[:, 1])
+    print(f"auROC for D_FIGSClassifier: {auroc}")
 
     d_figs_true.plot(filename="results/dynamic_figs/d_figs_true.png", label="none")
 
     d_figs_perturbed = D_FIGSClassifier(phases=phases, max_rules=2)
     # fit on permuted labels
-    d_figs_perturbed.fit(X.values, np.random.permutation(y))
+    d_figs_perturbed.fit(X_train.values, np.random.permutation(y))
     d_figs_perturbed.feature_names_ = features_names
     d_figs_perturbed.plot(filename="results/dynamic_figs/d_figs_permuted_labels.png", label="none")
-    # I want to swap the locations of 'SFxPalp_No_phase_3' and 'Drugs_1.0_phase_3' in feature names
-    i_1 = features_names.index('SFxPalp_No_phase_3')
+    # calculate auroc for d_figs_true
+    auroc = roc_auc_score(y_test, d_figs_perturbed.predict_proba(X_test.values)[:, 1])
+    print(f"auROC for D_FIGSClassifier: {auroc}")
+
+    # I want to swap the locations of 'AMS_1.0_phase_3' and 'Drugs_1.0_phase_3' in feature names
+    i_1 = features_names.index('AMS_1.0_phase_3')
     i_2 = features_names.index('Drugs_1.0_phase_3')
     features_names[i_1] = 'Drugs_1.0_phase_3'
-    features_names[i_2] = 'SFxPalp_No_phase_3'
-    # now do the same with 'HA_verb_91.0_phase_3' and 'SFxPalp_No_phase_3'
+    features_names[i_2] = 'AMS_1.0_phase_3'
+    # now do the same with 'HA_verb_91.0_phase_3' and 'SFxPalp_Yes_phase_3'
     i_1 = features_names.index('HA_verb_91.0_phase_3')
-    i_2 = features_names.index('SFxPalp_No_phase_3')
-    features_names[i_1] = 'SFxPalp_No_phase_3'
+    i_2 = features_names.index('SFxPalp_Yes_phase_3')
+    features_names[i_1] = 'SFxPalp_Yes_phase_3'
     features_names[i_2] = 'HA_verb_91.0_phase_3'
 
 
@@ -399,9 +413,10 @@ def make_dfigs_tree_plots():
 
 
 def main():
-    make_dfigs_tree_plots()
     # run_sim(20)
     # plot_performance_results()
+    make_dfigs_tree_plots()
+
     # # # (10)
 
 
