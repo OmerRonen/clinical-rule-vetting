@@ -1,0 +1,12 @@
+,rule,coef
+19,NeuroDCranial_92,-0.33296
+63,SFxBasRhi_92,-0.08166
+157,NeuroDOth_92,-0.09602
+178,SFxBas_0.0,-0.12587
+221,SeizLen_>15 min <= 0.5,-0.26389
+220,NeuroD_nan <= 0.5,-0.05431
+223,SFxPalpDepress_1.0 <= 0.5,-0.06374
+219,SFxPalpDepress_1.0 <= 0.5 and SeizLen_>15 min <= 0.5,-0.32357
+217,SFxBasHem_1 <= 0.5,-0.25464
+218,SFxBasHem_1 <= 0.5 and Sedated_1.0 <= 0.5,-0.29527
+222,SFxBasHem_1 <= 0.5 and SFxPalpDepress_1.0 <= 0.5,-0.2859

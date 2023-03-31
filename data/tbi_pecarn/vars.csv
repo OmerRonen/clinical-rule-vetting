@@ -1,0 +1,600 @@
+Variable Name,Label/Description,Format Name and Values,Notes,
+PatNum,Patient Number,Numeric,A randomly generated number that uniquely identifies each patient.,x
+EmplType,Position of physician completing data sheet,"EmplType
+ 1 Nurse Practitioner
+ 2 Physician Assistant
+ 3 Resident
+ 4 Fellow
+ 5 Faculty",An attending or fellow physician reviewed all forms.,x
+Certification,Certification of physician completing the form,"CertType
+ 1  Emergency Medicine
+ 2  Pediatrics
+ 3  Pediatrics Emergency Medicine
+ 4  Emergency Medicine and Pediatrics
+ 90 Other",,x
+InjuryMech,Injury mechanism,"InjMech
+ 1 Occupant in motor vehicle 
+  collision (MVC)
+ 2 Pedestrian struck by moving
+  vehicle
+ 3 Bike rider struck by automobile
+ 4 Bike collision or fall from bike
+  while riding
+ 5 Other wheeled transport crash
+ 6 Fall to ground from standing/
+  walking/running
+ 7 Walked or ran into stationary
+  object
+ 8 Fall from an elevation
+ 9 Fall down stairs
+ 10  Sports
+ 11  Assault
+ 12  Object struck head - accidental
+ 90  Other mechanism",,
+High_impact_InjSev,Severity of injury mechanism,"InjSev
+ 1  Low
+ 2  Moderate
+ 3  High","Injury Severity based on the injury mechanism classification
+ High
+  Motor vehicle collision with patient ejection, 
+  death of another passenger, or rollover
+  Pedestrian or bicyclist without helmet struck
+  by a motorized vehicle
+  Falls of > 5 feet for patients 2 yrs and older
+  Falls of > 3 feet < 2 yrs
+  Head struck by a high-impact object
+ Low
+  Fall from ground level (or fall to ground from
+  standing, walking or running)
+  Walked/ran into stationary object
+ Medium
+  Any other mechanism",
+Amnesia_verb,Does the patient have amnesia for the event?,"YesNoPV
+ 0  No
+ 1  Yes
+ 91 Pre-verbal/Non-verbal",Pre-verbal is marked if the patient is too young to speak. Non-verbal is marked if the patient is intubated or otherwise unable to give an understandable verbal response. Pre-verbal and non-verbal were determined by the physician.,
+LOCSeparate,History of loss of consciousness?,"YesNoLOC
+ 0  No
+ 1 Yes
+ 2  Suspected",,
+LocLen,Duration of loss of consciousness,"LocLen
+ 1  < 5 sec
+ 2  5 sec - < 1 min
+ 3  1 -5 min
+ 4  > 5 min
+ 92 Not applicable",Not applicable is marked if history of loss of consciousness is answered as no or missing.,
+Seiz,Post-traumatic seizure?,"YesNo
+ 0  No
+ 1  Yes",,
+SeizOccur,When did the post-traumatic seizure occur?,"SeizOcc
+ 1  Immediately on contact
+ 2  Within 30 minutes of injury
+ 3  > 30 minutes after injury
+ 92 Not applicable",Not applicable is marked if post-traumatic seizure is answered as no or missing.,
+SeizLen,Duration of post-traumatic seizure,"SeizLen
+ 1 < 1 min
+ 2  1 - < 5 min
+ 3  5 - 15 min
+ 4 > 15 min
+ 92 Not applicable",Not applicable is marked if post-traumatic seizure is answered as no or missing.,
+ActNorm,Does the parent think the child is acting normally / like themself?,"YesNo
+ 0  No
+ 1  Yes",,
+HA_verb,Headache at time of ED evaluation?,"YesNoPV
+ 0  No
+ 1  Yes
+ 91 Pre-verbal/Non-verbal",Pre-verbal is marked if the patient is too young to speak. Non-verbal is marked if the patient is intubated or otherwise unable to give an understandable verbal response. Pre-verbal and non-verbal were determined by the physician.,
+HASeverity,Severity of headache,"HASev
+ 1  Mild (barely noticeable)
+ 2  Moderate
+ 3  Severe (intense)
+ 92 Not applicable","Not applicable is marked if headache at time of ED evaluation is answered as no, pre-verbal/non-verbal, or missing.",
+HAStart,When did the headache start?,"Start
+ 1 Before head injury
+ 2 Within 1 hr of event
+ 3 1 - 4 hrs after event
+ 4 > 4 hrs after event
+ 92 Not applicable","Not applicable is marked if headache at time of ED evaluation is answered as no, pre-verbal/non-verbal, or missing.",
+Vomit,Vomiting (at any time after injury)?,"YesNo
+ 0  No
+ 1  Yes",,
+VomitNbr,How many vomiting episodes?,"VomEpi
+ 1  Once
+ 2  Twice
+ 3  > 2 times
+ 92 Not applicable",Not applicable is marked if vomiting (at any time after injury) is answered as no or missing.,
+VomitStart,When did the vomiting start?,"Start
+ 1  Before head injury
+ 2  Within 1 hr of event
+ 3 1 - 4 hrs after event
+ 4  > 4 hrs after event
+ 92 Not applicable",Not applicable is marked if vomiting (at any time after injury) is answered as no or missing.,
+VomitLast,When was the last episode of vomiting?,"VomLast
+ 1  < 1 hr before ED evaluation
+ 2  1 -4 hrs before ED evaluation
+ 3 > 4 hrs before ED evaluation
+ 92 Not applicable",Not applicable is marked if vomiting (at any time after injury) is answered as no or missing.,
+Dizzy,Dizziness (at ED evaluation)?,"YesNo
+ 0  No
+ 1  Yes",,x
+Intubated,Is the physician's evaluation being made after the patient was intubated?,"YesNo
+ 0  No
+ 1  Yes",,
+Paralyzed,Is the physician's evaluation being made after the patient was pharmacologically paralyzed?,"YesNo
+ 0  No
+ 1  Yes",,
+Sedated,Is physician's evaluation being made after the patient was pharmacologically sedated?,"YesNo
+ 0  No
+ 1  Yes",,
+GCSEye,GCS component: eye,"GCSEye
+ 1  None
+ 2  Pain
+ 3  Verbal
+ 4 Spontaneous",,back
+GCSVerbal,GCS component: verbal,"GCSVerbal
+ 1 None
+ 2 Incomprehensible sounds (moans)
+ 3 Inappropriate words (cries to pain)
+ 4 Confused (irritable/cries)
+ 5 Oriented (coos/babbles)",,back
+GCSMotor,GCS component: motor,"GCSMotor
+ 1 None
+ 2 Abnormal extension posturing
+ 3 Abnormal flexure posturing
+ 4 Withdraws to pain
+ 5 Localizes pain (withdraws to touch)
+ 6 Follow commands (spontaneous
+  movement)",,back
+GCSTotal,GCS Total,Numeric,,
+GCSGroup,GCS: 14-15,"GCSGroup
+ 1  3 - 13
+ 2 14 - 15",,"exclude 3-13
+ (only 969)"
+AMS,"GCS < 15 or other signs of altered mental status (agitated, sleepy, slow to respond, repetitive questions in the ED, other)","YesNo
+ 0  No
+ 1  Yes","AMS was defined as a GCS between 3 and 14 or other signs of altered mental status (agitation, repetitive questions, sleepy, slow to respond, or other)",
+AMSAgitated,Other signs of altered mental status: agitated,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if patient does not have GCS < 15 or other signs of altered mental status or AMS is missing.,
+AMSSleep,Other signs of altered mental status: sleepy,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if patient does not have GCS < 15 or other signs of altered mental status or AMS is missing.,
+AMSSlow,Other signs of altered mental status: slow to respond,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if patient does not have GCS < 15 or other signs of altered mental status or AMS is missing.,
+AMSRepeat,Other signs of altered mental status: repetitive questions in ED,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if patient does not have GCS < 15 or other signs of altered mental status or AMS is missing.,
+AMSOth,Other signs of altered mental status: other,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if patient does not have GCS < 15 or other signs of altered mental status or AMS is missing.,
+SFxPalp,Palpable skull fracture?,"YesNoUnc
+ 0 No
+ 1 Yes
+ 2 Unclear exam","If significant swelling or some other reason limits the physician's ability to assess for a skull fracture ""Unclear exam"" was marked.
+ 
+
+ In the clinical prediction rule, palpable skull fracture and unclear exam were combined.",
+SFxPalpDepress,"If the patient has a palpable skull fracture, does the fracture feel depressed?","YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if palpable skull fracture is answered as unclear, no, or missing.",
+FontBulg,Anterior fontanelle bulging?,"YesNoClo
+ 0  No/Closed
+ 1  Yes",,
+SFxBas,Signs of basilar skull fracture?,"YesNo
+ 0  No
+ 1  Yes",,
+SFxBasHem,Basilar skull fracture: hemotympanum,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if signs of basilar skull fracture is answered as no or missing.,
+SFxBasOto,Basilar skull fracture: CSF otorrhea,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if signs of basilar skull fracture is answered as no or missing.,
+SFxBasPer,Basilar skull fracture: periorbital ecchymosis (raccoon eyes),"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if signs of basilar skull fracture is answered as no or missing.,
+SFxBasRet,Basilar skull fracture: retroauricular ecchymosis (battle's sign),"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if signs of basilar skull fracture is answered as no or missing.,
+SFxBasRhi,Basilar skull fracture: CSF rhinorrhea,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if signs of basilar skull fracture is answered as no or missing.,
+Hema,Raised scalp hematoma(s) or swelling(s)?,"YesNo
+ 0  No
+ 1  Yes",,
+HemaLoc,Hematoma(s) or swelling(s) location(s) involved,"HemLoc
+ 1 Frontal
+ 2 Occipital
+ 3 Parietal/Temporal
+ 92 Not applicable",Not applicable is marked if raised scalp hematoma(s) or swelling(s) is answered as no or missing.,
+HemaSize,Size (diameter) of largest hematoma or swelling,"HemSz
+ 1  Small (<1 cm, barely palpable)
+ 2  Medium (1-3 cm)
+ 3  Large (>3 cm)
+ 92  Not applicable",Not applicable is marked if raised scalp hematoma(s) or swelling(s) is answered as no or missing.,
+Clav,"Any evidence of trauma (including laceration, abrasion, hematoma) above the clavicles (includes neck/face/scalp)?","YesNo
+ 0  No
+ 1  Yes",,
+ClavFace,Trauma above the clavicles region: face,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if any evidence of trauma above the clavicles is answered as no or missing.,
+ClavNeck,Trauma above the clavicles region: neck,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if any evidence of trauma above the clavicles is answered as no or missing.,
+ClavFro,Trauma above the clavicles region: scalp-frontal,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if any evidence of trauma above the clavicles is answered as no or missing.,
+ClavOcc,Trauma above the clavicles region: scalp-occipital,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if any evidence of trauma above the clavicles is answered as no or missing.,
+ClavPar,Trauma above the clavicles region: scalp-parietal,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if any evidence of trauma above the clavicles is answered as no or missing.,
+ClavTem,Trauma above the clavicles region: scalp-temporal,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if any evidence of trauma above the clavicles is answered as no or missing.,
+NeuroD,Neurological deficit (other than mental status)?,"YesNo
+ 0  No
+ 1  Yes",,
+NeuroDMotor,Neurological deficit: motor,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if neurological deficit (other than mental status) is answered as no or missing.,
+NeuroDSensory,Neurological deficit: sensory,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if neurological deficit (other than mental status) is answered as no or missing.,
+NeuroDCranial,Neurological deficit: cranial nerve (includes pupil reactivity),"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if neurological deficit (other than mental status) is answered as no or missing.,
+NeuroDReflex,Neurological deficit: reflexes,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if neurological deficit (other than mental status) is answered as no or missing.,
+NeuroDOth,"Neurological deficit: other deficits (e.g. cerebellar, gait)","YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if neurological deficit (other than mental status) is answered as no or missing.,
+OSI,"Clinical evidence of other (non-head) substantial injuries: (includes but not limited to fractures, intra-abdominal injuries, intra-thoracic injuries and lacerations requiring operating room repair.)","YesNo
+ 0  No
+ 1  Yes",,
+OSIExtremity,Other (non-head) substantial injury: extremity,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if other (non-head) substantial injuries is answered as no or missing.,
+OSICut,Other (non-head) substantial injury: laceration requiring repair in the operating room,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if other (non-head) substantial injuries is answered as no or missing.,
+OSICspine,Other (non-head) substantial injury: c-spine,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if other (non-head) substantial injuries is answered as no or missing.,
+OSIFlank,Other (non-head) substantial injury: chest/back/flank,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if other (non-head) substantial injuries is answered as no or missing.,
+OSIAbdomen,Other (non-head) substantial injury: intra-abdominal,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if other (non-head) substantial injuries is answered as no or missing.,
+OSIPelvis,Other (non-head) substantial injury: pelvis,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if other (non-head) substantial injuries is answered as no or missing.,
+OSIOth,Other (non-head) substantial injury: other,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if other (non-head) substantial injuries is answered as no or missing.,
+Drugs,Clinical suspicion for alcohol or drug intoxication (not by laboratory testing)?,"YesNo
+ 0  No
+ 1  Yes",,
+CTForm1,"Is a head CT, skull x-ray or head MRI being ordered or obtained?","YesNo
+ 0  No
+ 1  Yes","This variable only indicates if the physician was planning on obtaining a CT when the form was filled out. The physician could have changed his/her mind once the form was completed.
+ 
+
+ This variable does not mean a CT was actually ordered. To see if a CT was actually ordered use the CTDone or EDCT variables.",x
+IndAge,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: young age,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndAmnesia,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: amnesia,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndAMS,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: decreased mental status,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndClinSFx,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: clinical evidence of skull fracture,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndHA,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: headache,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndHema,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: scalp hematoma,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndLOC,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: loss of consciousness,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndMech,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: mechanism,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndNeuroD,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: neurological deficit (other than mental status),"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndRqstMD,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: referring MD request,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndRqstParent,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: parental anxiety/request,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndRqstTrauma,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: trauma team request,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndSeiz,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: seizure,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndVomit,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: vomiting,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndXraySFx,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: skull fracture on x-ray,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+IndOth,If a CT is being ordered or obtained check the most important indications in influencing the decision to obtain a head CT: other,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.
+ 
+
+ More than one indication can be selected for each patient.",x
+CTSed,Was patient given or will patient be given pharmacological sedation for head CT scan?,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable is marked if a head CT, skull x-ray or head MRI being ordered or obtained is answered as no or missing.",x
+CTSedAgitate,Reason for pharmacological sedation: agitation/inability to hold still,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable was marked if question of whether patient was given or will patient be given pharmacological sedation for head CT is answered as no, not applicable, or missing.
+ 
+
+ More than one reason for pharmacological sedation can be selected for each patient.",x
+CTSedAge,Reason for pharmacological sedation: young age,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable was marked if question of whether patient was given or will patient be given pharmacological sedation for head CT is answered as no, not applicable, or missing.
+ 
+
+ More than one reason for pharmacological sedation can be selected for each patient.",x
+CTSedRqst,Reason for pharmacological sedation: CT technician request,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable was marked if question of whether patient was given or will patient be given pharmacological sedation for head CT is answered as no, not applicable, or missing.
+ 
+
+ More than one reason for pharmacological sedation can be selected for each patient.",x
+CTSedOth,Reason for pharmacological sedation: other,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","Not applicable was marked if question of whether patient was given or will patient be given pharmacological sedation for head CT is answered as no, not applicable, or missing.
+ 
+
+ More than one reason for pharmacological sedation can be selected for each patient.",x
+AgeInMonth,Age in months,Numeric,This is computed from the time of ED evaluation or injury date if ED evaluation is missing.,
+AgeinYears,Age in years,Numeric,This is computed from the time of ED evaluation or injury date if ED evaluation is missing.,
+AgeTwoPlus,Age: < 2 years,"AgeTwo
+ 1  < 2 years
+ 2  > = 2 years",This is computed from the time of ED evaluation or injury date if ED evaluation is missing.,
+Gender,Gender,"Gender
+ 1  Male
+ 2  Female",,
+Ethnicity,Ethnicity,"Ethn
+ 1 Hispanic
+ 2  Non-Hispanic",As reported by the physician not by the patient/guardian.,x
+Race,Race,"Race
+ 1 White
+ 2 Black
+ 3 Asian
+ 4 American Indian/Alaskan Native
+ 5 Pacific Islander
+ 90 Other",As reported by the physician not by the patient/guardian.,x
+Observed,Was the patient observed in the ED after the physician's initial ED Evaluation to determine whether to obtain head CT?,"YesNo
+ 0  No
+ 1  Yes",,x
+EDDisposition,ED Disposition,"Disp
+ 1 Home
+ 2 OR
+ 3 Admit - general inpatient
+ 4 Admit short-stay (< 24 hr)/observation unit
+ 5 ICU
+ 6 Transferred to another hospital
+ 7 AMA
+ 8 Death in ED
+ 90 Other",,x
+CTDone,Any head CT performed?,"YesNo
+ 0  No
+ 1  Yes","This indicates if any head CT was performed regardless of where it was obtained except if the ED head CT was marked as ""not interpretable"".",x
+EDCT,Head CT performed in ED,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","ED head CT was defined as any head CT performed in the ED except if the head CT was ""not interpretable"".
+ 
+
+ Not applicable is marked if any CT done is answered as no.",x
+PosCT,TBI on CT (determined by PI),"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable","The first traumatic head CT of any patient was reviewed in order to determine if there was a TBI on CT. TBI on CT is defined as any of the traumatic findings (1-23) below, except for skull fracture. Skull fractures were not regarded as TBIs unless the fracture was depressed by at least the width of the skull.
+ 
+
+ Not applicable is marked if no head CT was performed.",x
+Finding1,Traumatic finding: cerebellar hemorrhage,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding2,Traumatic finding: cerebral contusion,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding3,Traumatic finding: cerebral edema,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding4,Traumatic finding: cerebral hemorrhage/intracerebral hematoma,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding5,Traumatic finding: diastasis of the skull,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding6,Traumatic finding: epidural hematoma,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding7,Traumatic finding: extra-axial hematoma,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding8,Traumatic finding: intraventricular hemorrhage,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding9,Traumatic finding: midline shift/shift of brain structures,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding10,Traumatic finding: pneumocephalus,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding11,Traumatic finding: skull fracture,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding12,Traumatic finding: subarachnoid hemorrhage,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding13,Traumatic finding: subdural hematoma,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding14,Traumatic finding: traumatic infarction,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding20,Traumatic finding (extra finding by PI): diffuse axonal injury,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding21,Traumatic finding (extra finding by PI): herniation,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding22,Traumatic finding (extra finding by PI):shear injury,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+Finding23,Traumatic finding (extra finding by PI): sigmoid sinus thrombosis,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable",Not applicable is marked if no head CT was performed.,x
+DeathTBI,Death due to TBI,"YesNo
+ 0  No
+ 1  Yes",,RES
+HospHead,Hospitalized for 2 or more nights due to head injury,"YesNo
+ 0  No
+ 1  Yes",,x
+HospHeadPosCT,Hospitalized for 2 or more nights due to head injury and had TBI on CT,"YesNo
+ 0  No
+ 1  Yes","The hospitalization had to be due to the traumatic brain injury and not for social reasons.
+ 
+
+ This was defined as a patient having been hospitalized 2 or more nights due to a head injury and also having a TBI on CT.",RES
+Intub24Head,Intubated greater than 24 hours for head trauma,"YesNo
+ 0  No
+ 1  Yes",,RES
+Neurosurgery,Neurosurgery,"YesNo
+ 0  No
+ 1  Yes",,RES
+PosIntFinal,Clinically-important traumatic brain injury,"YesNo
+ 0  No
+ 1  Yes","Clinically-important TBI was defined as having at least one of the following: (1) neurosurgical procedure performed, (2) intubated > 24 hours for head trauma, (3) death due to TBI or in the ED, (4) hospitalized for >= 2 nights due to head injury and having a TBI on CT.",MAIN RES

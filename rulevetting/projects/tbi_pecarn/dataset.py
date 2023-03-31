@@ -296,7 +296,7 @@ class Dataset:
 
         return extracted_features
 
-    def split_data(self, preprocessed_data: pd.DataFrame) -> tuple[Any, Any, Any]:
+    def split_data(self, preprocessed_data: pd.DataFrame, seed:int) -> tuple[Any, Any, Any]:
         """Split into 3 sets: training, tuning, testing.
         Do not modify (to ensure consistent test set).
         Keep in mind any natural splits (e.g. hospitals).
@@ -314,15 +314,17 @@ class Dataset:
         df_tune
         df_test
         """
-        np.random.seed(42)
+        np.random.seed(seed)
         n = preprocessed_data.shape[0]
         indices = np.random.choice(n, size=n, replace=False)
         # LOGGER.info(indices[0:5])
         print(f"Shape: {preprocessed_data.shape}, ciTBI: {preprocessed_data.outcome.mean()}")
+
+
         pre_indices = set(preprocessed_data.index)
-        train_ind = list(set(indices[0:int(0.6 * n)]).intersection(pre_indices))
-        tune_ind = list(set(indices[int(0.6 * n):int(0.8 * n)]).intersection(pre_indices))
-        test_ind = list(set(indices[int(0.8 * n):n]).intersection(pre_indices))
+        train_ind = list(set(indices[0:int(0.5 * n)]).intersection(pre_indices))
+        tune_ind = list(set(indices[int(0.5 * n):int(0.75 * n)]).intersection(pre_indices))
+        test_ind = list(set(indices[int(0.75 * n):n]).intersection(pre_indices))
 
         # train_ind = [i for i in indices[0:int(0.6*n)] if i in pre_indices]
         # tune_ind = [i for i in indices[int(0.6*n):int(0.8*n)] if i in pre_indices]
@@ -342,7 +344,7 @@ class Dataset:
 
     @abstractmethod
     def get_data_split(self, pre_data: pd.DataFrame, simple=False, young=True, old=True, verbal_split=False,
-                       nonverbal=True, verbal=True):
+                       nonverbal=True, verbal=True, seed=42):
         """Retrieve preprocessed data and returns the requested dataset (train, tune, test)
         
         Parameters
@@ -379,7 +381,7 @@ class Dataset:
                 pre_data = pre_data.loc[pre_data['HA_verb'] == 91, :]
                 pre_data = pre_data.drop(columns=['HA_verb'])
 
-        df_train, df_tune, df_test = self.split_data(pre_data)
+        df_train, df_tune, df_test = self.split_data(pre_data, seed=seed)
         X_train = df_train.drop(columns=outcome_def)
         y_train = df_train[outcome_def].values
         X_tune = df_tune.drop(columns=outcome_def)
@@ -408,23 +410,25 @@ class Dataset:
 
     @abstractmethod
     def get_simple_var_list(self) -> list:
-        return ['InjuryMech_Assault', 'InjuryMech_Bicyclist struck by automobile',
-                'InjuryMech_Bike collision/fall', 'InjuryMech_Fall down stairs',
-                'InjuryMech_Fall from an elevation',
-                'InjuryMech_Fall to ground standing/walking/running',
-                'InjuryMech_Motor vehicle collision',
-                'InjuryMech_Object struck head - accidental',
-                'InjuryMech_Other mechanism', 'InjuryMech_Other wheeled crash',
-                'InjuryMech_Pedestrian struck by moving vehicle', 'InjuryMech_Sports',
-                'InjuryMech_Walked/ran into stationary object',
-                'High_impact_InjSev_High', 'High_impact_InjSev_Low',
-                'High_impact_InjSev_Moderate', 'Amnesia_verb_No',
-                'Amnesia_verb_Pre/Non-verbal', 'Amnesia_verb_Yes',
-                'LOCSeparate_No', 'LOCSeparate_Suspected', 'LOCSeparate_Yes',
-                'Seiz', 'ActNorm', 'HA_verb_No', 'HA_verb_Pre/Non-verbal', 'HA_verb_Yes',
-                'Vomit', 'Intubated', 'Paralyzed', 'Sedated',
-                'AMS', 'SFxPalp_No', 'SFxPalp_Unclear', 'SFxPalp_Yes',
-                'FontBulg', 'Hema', 'Clav', 'NeuroD', 'OSI', 'Drugs', 'AgeTwoPlus', 'outcome']
+        vars = list(pd.read_csv("data/tbi_pecarn/simple_vars.csv", index_col=0).iloc[:, 0])
+        return vars
+        # return ['InjuryMech_Assault', 'InjuryMech_Bicyclist struck by automobile',
+        #         'InjuryMech_Bike collision/fall', 'InjuryMech_Fall down stairs',
+        #         'InjuryMech_Fall from an elevation',
+        #         'InjuryMech_Fall to ground standing/walking/running',
+        #         'InjuryMech_Motor vehicle collision',
+        #         'InjuryMech_Object struck head - accidental',
+        #         'InjuryMech_Other mechanism', 'InjuryMech_Other wheeled crash',
+        #         'InjuryMech_Pedestrian struck by moving vehicle', 'InjuryMech_Sports',
+        #         'InjuryMech_Walked/ran into stationary object',
+        #         'High_impact_InjSev_High', 'High_impact_InjSev_Low',
+        #         'High_impact_InjSev_Moderate', 'Amnesia_verb_No',
+        #         'Amnesia_verb_Pre/Non-verbal', 'Amnesia_verb_Yes',
+        #         'LOCSeparate_No', 'LOCSeparate_Suspected', 'LOCSeparate_Yes',
+        #         'Seiz', 'ActNorm', 'HA_verb_No', 'HA_verb_Pre/Non-verbal', 'HA_verb_Yes',
+        #         'Vomit', 'Intubated', 'Paralyzed', 'Sedated',
+        #         'AMS', 'SFxPalp_No', 'SFxPalp_Unclear', 'SFxPalp_Yes',
+        #         'FontBulg', 'Hema', 'Clav', 'NeuroD', 'OSI', 'Drugs', 'AgeTwoPlus', 'outcome']
 
     @abstractmethod
     def get_dataset_id(self) -> str:
@@ -461,13 +465,14 @@ class Dataset:
     def get_data(self, save_csvs: bool = False,
                  data_path: str = rulevetting.DATA_PATH,
                  load_csvs: bool = False,
-                 simple: bool = False,
+                 simple: bool = True,
                  young: bool = True,
                  old: bool = True,
                  verbal_split: bool = False,
                  nonverbal: bool = True,
                  verbal: bool = True,
-                 run_perturbations: bool = False, **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+                 run_perturbations: bool = False,
+                 seed:int = 42, **kwargs) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         """Runs all the processing and returns the data.
         This method does not need to be overriden.
 
@@ -547,7 +552,7 @@ class Dataset:
 
             # remove identical columns
             pre_data = pre_data.loc[:, ~pre_data.columns.duplicated()]
-            df_train, df_tune, df_test = self.split_data(pre_data)
+            df_train, df_tune, df_test = self.split_data(pre_data, seed=seed)
 
 
         elif run_perturbations:
@@ -594,5 +599,48 @@ class Dataset:
 
 
 if __name__ == '__main__':
-    data = Dataset().get_data(run_perturbations=True, load_csvs=False)
-    pass
+    def get_phases(columns):
+        df_label = pd.read_csv('data/tbi_pecarn/TBI variables with label.csv')
+        df_label = df_label.rename(
+            columns={'Time (Aaron) 1= Prehospital, 2=primary survey, 3= first 1 hour, 4= > 1hour': 'timestamp'})
+        time_distribution = df_label.groupby('timestamp')['Variable Name'].agg(list)
+
+        phases = {0: [], 1: []}  # 0: prehospital, 1: hospital
+
+        phase_1_features = time_distribution[0]
+        phase_2_features = time_distribution[0] + time_distribution[2] + time_distribution[3]
+        for feature in phase_1_features:
+            # get all columns names that start with feature
+            # set of new indices
+            new_indices = [i for i, f in enumerate(columns) if f.startswith(feature)]
+            phases[0] += new_indices
+        # phases[1] = set(phases[0])
+        for feature in phase_2_features:
+            # get all columns names that start with feature
+
+            new_indices = [i for i, f in enumerate(columns) if f.startswith(feature)]
+            phases[1] += new_indices
+        # phases[0] = list(set(phases[0]))
+        # phases[0].sort()
+        # phases[1] = list(set(phases[1]))
+        # phases[1].sort()
+
+        return phases
+    data = Dataset().get_data()
+    # merge all splits to one dataset
+    data_full = pd.concat([data[0], data[1], data[2]], axis=0)
+    data_full = data_full.reset_index().drop(columns=['index'])
+    # plot the outcome distribution for each phase (selecting the columns and removing nan values)
+    phases = get_phases(data_full.columns)
+    # get non nan indices for each phase
+    non_nan_indices = {0: [], 1: []}
+    for phase in phases.keys():
+        non_nan_indices[phase] = data_full.iloc[:, phases[phase]].dropna().index
+    # print mean outcome for each phase
+    for phase in phases.keys():
+        print(f'Phase {phase}: {data_full.iloc[non_nan_indices[phase], -1].mean()}, number of samples: {len(non_nan_indices[phase])}')
+
+
+
+
+
