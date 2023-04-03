@@ -19,12 +19,13 @@ from sklearn.tree import DecisionTreeClassifier
 
 METHODS = [FIGSClassifier, RandomForestClassifier, GreedyRuleListClassifier, DecisionTreeClassifier,
            LogisticRegressionCV]
-mpl.rcParams['font.size'] = 12       # Default font size for text elements
+mpl.rcParams['font.size'] = 12  # Default font size for text elements
 mpl.rcParams['axes.titlesize'] = 14  # Default font size for titles
 mpl.rcParams['axes.labelsize'] = 12  # Default font size for axis labels
 mpl.rcParams['xtick.labelsize'] = 10  # Default font size for x-axis tick labels
 mpl.rcParams['ytick.labelsize'] = 10  # Default font size for y-axis tick labels
 mpl.rcParams['legend.fontsize'] = 10  # Default font size for legends
+
 
 def parse_args():
     # add dataset argument
@@ -268,11 +269,18 @@ def add_na_dummy(df):
     return df_cpy
 
 
-def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False, max_trees = None):
+def _get_sample_weight(y_train):
+    # return None
+    class_weights = {1: 1 - np.mean(y_train), 0: np.mean(y_train)}
+    # sample weight vector of size X_train.shape[0]
+    sample_weight = np.array([class_weights[y_train.iloc[i]] for i in range(y_train.shape[0])])
+    return sample_weight
+
+
+def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False, max_trees=None):
     X_imputed, y_imputed = get_dataset(impute=True, permute_phase=permute_phase)
     X, y = get_dataset(impute=False, permute_phase=permute_phase)
     method = "FIGS" if max_trees is None else "CART"
-
 
     # remove duplicates columns in X and X_imputed
     # X = X.loc[:, ~X.columns.duplicated()]
@@ -285,8 +293,8 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False, max_trees =
     log_phases(X, permute_phase)
     phases = get_phases(X.columns, permute_phases=permute_phase)
     performance = {"dfigs": [], "figs_na": [], "figs_imputed": [], "figs": []}
-    performance_per_phase = {"dfigs" : {i:[] for i in range(len(phases))},
-                             "figs": {i:[] for i in range(len(phases))}}
+    performance_per_phase = {"dfigs": {i: [] for i in range(len(phases))},
+                             "figs": {i: [] for i in range(len(phases))}}
     for seed in range(n_seeds):
         X_na = add_na_dummy(X)
 
@@ -301,15 +309,20 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False, max_trees =
         idx = X_test.dropna().index
 
         d_figs = D_FIGSClassifier(phases=copy.deepcopy(phases), max_rules=max_rules)
-        d_figs_auc = get_auc_score(d_figs, X_train, X_test, y_train, y_test, idx=idx)
+        d_figs_auc = get_auc_score(d_figs, X_train, X_test, y_train, y_test, idx=idx,
+                                   sample_weight=_get_sample_weight(y_train))
         figs_na = FIGSClassifier(max_rules=max_rules * len(phases), max_trees=max_trees)
         figs_imp = FIGSClassifier(max_rules=max_rules * len(phases), max_trees=max_trees)
-        figs = FIGSClassifier(max_rules=max_rules * len(phases),   max_trees=max_trees)
+        figs = FIGSClassifier(max_rules=max_rules * len(phases), max_trees=max_trees)
 
-        figs_na_auc = get_auc_score(figs_na, X_na_train, X_na_test, y_train, y_test, idx=idx)
-        figs_imp_auc = get_auc_score(figs_imp, X_train_imputed, X_test_imputed, y_train, y_test, idx=idx)
+        figs_na_auc = get_auc_score(figs_na, X_na_train, X_na_test, y_train, y_test, idx=idx,
+                                    sample_weight=_get_sample_weight(y_train))
+        figs_imp_auc = get_auc_score(figs_imp, X_train_imputed, X_test_imputed, y_train, y_test, idx=idx,
+                                     sample_weight=_get_sample_weight(y_train))
         X_train_no_na, y_train_no_na = X_train.dropna(), y_train[X_train.dropna().index]
-        figs_auc = get_auc_score(figs, X_train_no_na, X_test, y_train_no_na, y_test, idx=idx)
+
+        figs_auc = get_auc_score(figs, X_train_no_na, X_test, y_train_no_na, y_test, idx=idx,
+                                 sample_weight=_get_sample_weight(y_train_no_na))
         # add this to performance dict
         performance["dfigs"].append(d_figs_auc)
         performance["figs_na"].append(figs_na_auc)
@@ -324,20 +337,27 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False, max_trees =
             na_idx_train, na_idx_test = X_train_phase.dropna().index, X_test_phase.dropna().index
             X_train_phase, X_test_phase = X_train_phase.loc[na_idx_train, :], X_test_phase.loc[na_idx_test, :]
             y_train_phase, y_test_phase = y_train[na_idx_train], y_test[na_idx_test]
-            performance_per_phase["dfigs"][phase].append(get_auc_score(d_figs, X_train, X_test, y_train, y_test, idx=idx))
-            performance_per_phase["figs"][phase].append(get_auc_score(figs, X_train_phase, X_test_phase, y_train_phase, y_test_phase, idx=idx))
+            performance_per_phase["dfigs"][phase].append(
+                get_auc_score(d_figs, X_train, X_test, y_train, y_test, idx=idx,
+                              sample_weight=_get_sample_weight(y_train)))
+            performance_per_phase["figs"][phase].append(
+                get_auc_score(figs, X_train_phase, X_test_phase, y_train_phase, y_test_phase, idx=idx,
+                              sample_weight=_get_sample_weight(y_train_phase)))
 
     fig, axs = plt.subplots(1, len(phases), figsize=(15, 15))
     max_auc = -1 * np.inf
     min_auc = np.inf
     for i, phase in phases.items():
         # do two bar plots one next to the other for dfigs and figs_na
-        axs[i].bar([f"D-{method}", f"{method}"], [np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs"][i])],
-        yerr=[np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds), np.std(performance_per_phase["figs"][i]) / np.sqrt(n_seeds)],
-                     color=["#1f77b4", "#ff7f0e"])
+        axs[i].bar([f"D-{method}", f"{method}"],
+                   [np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs"][i])],
+                   yerr=[np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds),
+                         np.std(performance_per_phase["figs"][i]) / np.sqrt(n_seeds)],
+                   color=["#1f77b4", "#ff7f0e"])
         axs[i].set_title(f"phase {i}")
         # update max and min auc
-        max_std_phase = 3 * np.max([np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds), np.std(performance_per_phase["figs"][i]) / np.sqrt(n_seeds)])
+        max_std_phase = 3 * np.max([np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds),
+                                    np.std(performance_per_phase["figs"][i]) / np.sqrt(n_seeds)])
         max_auc_phase = np.max([np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs"][i])])
         min_auc_phase = np.min([np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs"][i])])
         max_auc = max(max_auc, max_auc_phase + max_std_phase)
@@ -546,8 +566,8 @@ def get_scores(cdi_strategy: str, phases_idx: dict, fitted_methods: dict, d_figs
     return {"auroc": aucs_phase, "auprc": aucprs_phase}
 
 
-def get_auc_score(cls, X_train, X_test, y_train, y_test, idx=None):
-    cls.fit(X_train.values, y_train)
+def get_auc_score(cls, X_train, X_test, y_train, y_test, sample_weight=None, idx=None):
+    cls.fit(X_train.values, y_train, sample_weight=sample_weight)
     if idx is not None:
         preds = cls.predict_proba(X_test.loc[idx, :].values)[:, 1]
         if len(np.unique(preds)) == 1:
@@ -561,7 +581,7 @@ def get_auc_score(cls, X_train, X_test, y_train, y_test, idx=None):
 
 def main():
     n_seeds = 20
-    results_dir = os.path.join("results", "dynamic_methods", DS)
+    results_dir = os.path.join("results", "dynamic_methods_class_weight", DS)
     run_sim(n_seeds, results_dir, permute_phase=False)
     run_sim(n_seeds, results_dir, permute_phase=False, max_trees=1)
 
