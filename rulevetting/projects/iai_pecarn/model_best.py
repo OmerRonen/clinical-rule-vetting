@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from imodels import FIGSClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 from rulevetting.templates.model import ModelTemplate
 
@@ -53,10 +55,11 @@ if __name__ == '__main__':
     from rulevetting.projects.iai_pecarn.dataset import Dataset
 
     df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
-    df_full = pd.concat((df_train, df_tune, df_test))
-    model = Model()
-    preds_proba = model.predict_proba(df_full)
-    print(model.print_model(df_full))
-    # preds = baseline.predict(df_train)
-    # print('preds_proba', preds_proba.shape, preds_proba[:5])
-    # print('preds', preds.shape, preds[:5])
+
+    # df_full = pd.concat((df_train, df_tune, df_test))
+    # model = Model()
+    # preds_proba = model.predict_proba(df_full)
+    # print(model.print_model(df_full))
+    # # preds = baseline.predict(df_train)
+    # # print('preds_proba', preds_proba.shape, preds_proba[:5])
+    # # print('preds', preds.shape, preds[:5])

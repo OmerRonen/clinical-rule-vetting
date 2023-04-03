@@ -3,6 +3,7 @@ from os.path import join as oj
 import numpy as np
 import os
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from typing import Dict
 
@@ -137,7 +138,36 @@ class Dataset(DatasetTemplate):
 
 if __name__ == '__main__':
     dset = Dataset()
-    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=True)
+    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=False)
     print('successfuly processed data\nshapes:',
           df_train.shape, df_tune.shape, df_test.shape,
           '\nfeatures:', list(df_train.columns))
+    # feat_to_drop = ["outcome", 'InitHeartRate', 'InitSysBPRange']
+    # rf = RandomForestClassifier()
+    # rf.fit(df_train.drop(columns=feat_to_drop), df_train['outcome'])
+    # # concat tune and test
+    # data_test = pd.concat((df_tune, df_test))
+    # # calculate auc
+    # auc = rf.score(data_test.drop(columns=feat_to_drop), data_test['outcome'])
+    # # print the features ordered by importance
+    # importances = pd.DataFrame({'feature': data_test.drop(columns=feat_to_drop).columns, 'importance': rf.feature_importances_}).sort_values('importance', ascending=False)
+    # # save to csv the importances that are larger than 0
+    # importances = importances[importances['importance'] > 0]
+    # # read the line from data_dictionsary.md file that startswith a given feature name
+    # def get_line_from_data_dictionary(feature_name):
+    #     with open('data_dictionary.md') as f:
+    #         for line in f.readlines():
+    #             if feature_name.split("_")[0] in line:
+    #                 d = line.split("|")[2]
+    #                 # remove space before and after the description
+    #                 d = d.strip()
+    #                 return d
+    #         else:
+    #             return "no description"
+    # # get the line for every feature in the importances
+    # importances = importances.groupby(importances['feature'].apply(lambda x: x.split("_")[0])).sum().reset_index()
+    #
+    # importances['data_dictionary'] = importances['feature'].apply(get_line_from_data_dictionary)
+    # # sort by importance
+    # importances = importances.sort_values('importance', ascending=False)
+    # importances.to_csv('importances.csv', index=False)
