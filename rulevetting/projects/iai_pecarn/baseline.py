@@ -10,7 +10,7 @@ class Baseline(ModelTemplate):
         self.rules = [
             ('AbdTrauma_or_SeatBeltSign_yes == 1', 5.7),
             ('GCSScore < 14', 4.6),
-            ('AbdTenderDegree_None == 0', 1.4),
+            ('AbdTenderDegree_unknown == 0', 1.4),
             ('ThoracicTrauma_yes == 1', 0.6),
             ('AbdomenPain_yes == 1', 0.7),
             ('DecrBreathSound_yes == 1', 2.9),

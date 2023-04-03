@@ -17,7 +17,7 @@ def test_models(project):
         project_ids = [project]
     else:
         project_ids = rulevetting.api.util.get_project_ids()
-        project_ids.remove("tig_pecarn")
+        # project_ids.remove("tig_pecarn")
     
     for project_id in project_ids:
         # get data
