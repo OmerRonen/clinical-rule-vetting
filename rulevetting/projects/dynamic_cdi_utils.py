@@ -275,7 +275,8 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False):
     log_phases(X, permute_phase)
     phases = get_phases(X.columns, permute_phases=permute_phase)
     performance = {"dfigs": [], "figs_na": [], "figs_imputed": []}
-
+    performance_per_phase = {"dfigs" : {i:[] for i in range(len(phases))},
+                             "figs_na": {i:[] for i in range(len(phases))}}
     for seed in range(n_seeds):
         X_na = add_na_dummy(X)
 
@@ -300,6 +301,23 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False):
         performance["dfigs"].append(d_figs_auc)
         performance["figs_na"].append(figs_na_auc)
         performance["figs_imputed"].append(figs_imp_auc)
+
+        phases_idx_test = get_phase_idx(X_test, phases)
+        for phase, idx, in phases_idx_test.items():
+            if np.var(y_test[idx]) == 0:
+                continue
+            performance_per_phase["dfigs"][phase].append(get_auc_score(d_figs, X_train_imputed, X_test, y_train, y_test, idx=idx))
+            performance_per_phase["figs_na"][phase].append(get_auc_score(figs_na, X_na_train, X_na_test, y_train, y_test, idx=idx))
+
+    fig, axs = plt.subplots(1, len(phases), figsize=(15, 15))
+    for i, phase in phases.items():
+        # do two bar plots one next to the other for dfigs and figs_na
+        axs[i].bar(["D-FIGS", "FIGS (na category)"], [np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs_na"][i])],
+        yerr=[np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds), np.std(performance_per_phase["figs_na"][i]) / np.sqrt(n_seeds)],
+                     color=["#1f77b4", "#ff7f0e"])
+        axs[i].set_title(f"phase {i}")
+    plt.savefig(os.path.join(results_dir, "bar_plot_figs_per_phase.png"), dpi=300)
+    plt.close()
     # make a bar plot for the three methods with error bars
     fig, ax = plt.subplots()
     methods_names = ["D-FIGS", "FIGS (na category)", "FIGS (imputed)"]
@@ -321,7 +339,7 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False):
 
     # d_figs.feature_names_ = features_names
     # d_figs.fit(X_train.values, y_train.values)
-
+    # phases_idx = get_phase_idx(X_train, phases)
     # method_per_phase = fit_methods(X_train, X_train_imputed, y_train, copy.deepcopy(phases), METHODS)
     # for cdi_strategy in ["current", "first", "imputed"]:
     #     scores_strategy = get_scores(cdi_strategy, phases_idx, method_per_phase, d_figs, X_test, X_test_imputed,
@@ -330,7 +348,7 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False):
     #
     #         for m in scores_strategy["auroc"][phase]:
     #             results[cdi_strategy][phase]["auc"][m].append(scores_strategy["auroc"][phase][m])
-    #
+
     # def plot_curves(curve_type, analysis_type):
     #     fig, axs = plt.subplots(1, 3, figsize=(15, 15))
     #     plt_func = plot_rocs if curve_type == "auc" else plot_prc
@@ -495,7 +513,12 @@ def get_scores(cdi_strategy: str, phases_idx: dict, fitted_methods: dict, d_figs
 def get_auc_score(cls, X_train, X_test, y_train, y_test, idx=None):
     cls.fit(X_train.values, y_train)
     if idx is not None:
-        return roc_auc_score(y_test[idx], cls.predict_proba(X_test.loc[idx, :].values)[:, 1])
+        preds = cls.predict_proba(X_test.loc[idx, :].values)[:, 1]
+        if len(np.unique(preds)) == 1:
+            return 0.5
+        if np.var(y_test[idx]) == 0:
+            return np.nan
+        return roc_auc_score(y_test[idx], preds)
     # get phase of first split
     return roc_auc_score(y_test, cls.predict_proba(X_test.values)[:, 1])
 
