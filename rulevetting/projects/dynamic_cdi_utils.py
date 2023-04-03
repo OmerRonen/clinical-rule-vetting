@@ -286,7 +286,7 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False, max_trees =
     phases = get_phases(X.columns, permute_phases=permute_phase)
     performance = {"dfigs": [], "figs_na": [], "figs_imputed": [], "figs": []}
     performance_per_phase = {"dfigs" : {i:[] for i in range(len(phases))},
-                             "figs_na": {i:[] for i in range(len(phases))}}
+                             "figs": {i:[] for i in range(len(phases))}}
     for seed in range(n_seeds):
         X_na = add_na_dummy(X)
 
@@ -320,29 +320,31 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False, max_trees =
         for phase, idx, in phases_idx_test.items():
             if np.var(y_test[idx]) == 0:
                 continue
+            X_train_phase, X_test_phase = X_train.iloc[:, phases[phase]], X_test.iloc[:, phases[phase]]
+            na_idx_train, na_idx_test = X_train_phase.dropna().index, X_test_phase.dropna().index
+            X_train_phase, X_test_phase = X_train_phase.loc[na_idx_train, :], X_test_phase.loc[na_idx_test, :]
+            y_train_phase, y_test_phase = y_train[na_idx_train], y_test[na_idx_test]
             performance_per_phase["dfigs"][phase].append(get_auc_score(d_figs, X_train, X_test, y_train, y_test, idx=idx))
-            performance_per_phase["figs_na"][phase].append(get_auc_score(figs_na, X_na_train, X_na_test, y_train, y_test, idx=idx))
+            performance_per_phase["figs"][phase].append(get_auc_score(figs, X_train_phase, X_test_phase, y_train_phase, y_test_phase, idx=idx))
 
     fig, axs = plt.subplots(1, len(phases), figsize=(15, 15))
     max_auc = -1 * np.inf
     min_auc = np.inf
     for i, phase in phases.items():
         # do two bar plots one next to the other for dfigs and figs_na
-        axs[i].bar([f"D-{method}", f"{method} (na category)"], [np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs_na"][i])],
-        yerr=[np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds), np.std(performance_per_phase["figs_na"][i]) / np.sqrt(n_seeds)],
+        axs[i].bar([f"D-{method}", f"{method}"], [np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs"][i])],
+        yerr=[np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds), np.std(performance_per_phase["figs"][i]) / np.sqrt(n_seeds)],
                      color=["#1f77b4", "#ff7f0e"])
         axs[i].set_title(f"phase {i}")
         # update max and min auc
-        max_std_phase = 3 * np.max([np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds), np.std(performance_per_phase["figs_na"][i]) / np.sqrt(n_seeds)])
-        max_auc_phase = np.max([np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs_na"][i])])
-        min_auc_phase = np.min([np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs_na"][i])])
+        max_std_phase = 3 * np.max([np.std(performance_per_phase["dfigs"][i]) / np.sqrt(n_seeds), np.std(performance_per_phase["figs"][i]) / np.sqrt(n_seeds)])
+        max_auc_phase = np.max([np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs"][i])])
+        min_auc_phase = np.min([np.mean(performance_per_phase["dfigs"][i]), np.mean(performance_per_phase["figs"][i])])
         max_auc = max(max_auc, max_auc_phase + max_std_phase)
         min_auc = min(min_auc, min_auc_phase - max_std_phase)
     for i in range(len(phases)):
         axs[i].set_ylim(min_auc, max_auc)
 
-
-    # tight layout
     plt.tight_layout()
     plt.savefig(os.path.join(results_dir, "bar_plot_figs_per_phase.png"), dpi=300)
     plt.close()

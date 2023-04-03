@@ -1,0 +1,113 @@
+Variable Name,"Time (Aaron) 1= Prehospital, 2=primary survey, 3= first 1 hour, 4= > 1hour",Format Name and Values
+LTCostalTender,3,"YesNo
+ 0  No
+ 1  Yes"
+LTCostalTender_2,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+LTCostalTender_3,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+LTCostalTender_4,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+MOI,2,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+MOI_Fall down stairs,2,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+MOI_Fall from an elevator,2,"YesNo
+ 0  No
+ 1  Yes"
+MOI_Motor vehicle collision,2,"VomEpi
+ 1  Once
+ 2  Twice
+ 3  > 2 times
+ 92 Not applicable"
+MOI_Motorcycle/ATV/Scooter collision,2,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+MOI_Object struck abdomen,2,"YesNo
+ 0  No
+ 1  Yes"
+MOI_Pedestrian/bicyclist struck by moving vehicle,2,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+RTCostalTender_1,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+RTCostalTender_2,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+RTCostalTender_3,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+RTCostalTender_4,3,"GCSEye
+ 1  None
+ 2  Pain
+ 3  Verbal
+ 4 Spontaneous"
+CostalTender,3,"EmplType
+ 1 Nurse Practitioner
+ 2 Physician Assistant
+ 3 Resident
+ 4 Fellow
+ 5 Faculty"
+Sex,1,"GCSGroup
+ 1  3 - 13
+ 2 14 - 15"
+DistractingPain,2,Numeric
+AbdDistention_or_AbdomenPain,3,"GCSMotor
+ 1 None
+ 2 Abnormal extension posturing
+ 3 Abnormal flexure posturing
+ 4 Withdraws to pain
+ 5 Localizes pain (withdraws to touch)
+ 6 Follow commands (spontaneous
+  movement)"
+ThoracicTender,3,"GCSVerbal
+ 1 None
+ 2 Incomprehensible sounds (moans)
+ 3 Inappropriate words (cries to pain)
+ 4 Confused (irritable/cries)
+ 5 Oriented (coos/babbles)"
+Hypotension,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+ThoracicTrauma,3,"YesNo
+ 0  No
+ 1  Yes"
+GCSScore_Full,2,"YesNoUnc
+ 0 No
+ 1 Yes
+ 2 Unclear exam"
+AbdTrauma_or_SeatBeltSign,3,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+Age,1,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+DecrBreathSound,2,"YesNo
+ 0  No
+ 1  Yes"
+outcome,4,"YesNoNA
+ 0  No
+ 1  Yes
+ 92 Not applicable"
+VomitWretch,1,"YesNo
+ 0  No
+ 1  Yes"
