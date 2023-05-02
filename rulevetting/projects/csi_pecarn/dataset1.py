@@ -67,12 +67,12 @@ class Dataset(DatasetTemplate):
                           'HighriskMVC', 'HighriskDiving', 'HighriskFall', 'HighriskHanging', 'HighriskHitByCar', 'HighriskOtherMV', 'AxialLoadAnyDoc', 'axialloadtop', 'Clotheslining']
         conserv_feats = ['LOC']
         unclear_feats = ['AlteredMentalStatus', 'AlteredMentalStatus2', 'ambulatory', 'PainNeck', 'PainNeck2', 'PosMidNeckTenderness', 'PosMidNeckTenderness2', 'TenderNeck', 'TenderNeck2']
-        df[liberal_feats] = df[liberal_feats].fillna(0)
-        df[conserv_feats] = df[conserv_feats].fillna(1)
-        df[unclear_feats] = df[unclear_feats].fillna(0) 
-        
-        # pandas impute missing values with median
-        df = df.fillna(df.median())
+        # df[liberal_feats] = df[liberal_feats].fillna(0)
+        # df[conserv_feats] = df[conserv_feats].fillna(1)
+        # df[unclear_feats] = df[unclear_feats].fillna(0)
+        #
+        # # pandas impute missing values with median
+        # df = df.fillna(df.median())
         # df.GCSScore = df.GCSScore.fillna(df.GCSScore.median())
         
         # df = df[df['ControlType'].isin(['case', 'ems'])]

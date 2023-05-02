@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 
 from sklearn.linear_model import LogisticRegression
 from joblib import dump, load
@@ -23,9 +24,11 @@ class Model(ModelTemplate):
 if __name__ == '__main__':
     from rulevetting.projects.tbi_pecarn.dataset import Dataset
 
-    df_train, df_tune, df_test = Dataset().get_data(load_csvs=True)
-    df_full = pd.concat((df_train, df_tune, df_test))
-    model = Model()
-    preds_proba = model.predict_proba(df_full)
-    print(model.print_model(df_full))
+    df_train, df_tune, df_test = Dataset().get_data()
+    # fit a random forest model and print test auc
+
+    # df_full = pd.concat((df_train, df_tune, df_test))
+    # model = Model()
+    # preds_proba = model.predict_proba(df_full)
+    # print(model.print_model(df_full))
     

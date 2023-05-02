@@ -5,6 +5,7 @@ from unittest import result
 import numpy as np
 import os
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from typing import Dict
 
@@ -196,7 +197,8 @@ class Dataset(DatasetTemplate):
             df = df.drop(columns = feats1)
 
         # Only analysisVariable
-        if not kwargs['augmented_features']:
+        # if not kwargs['augmented_features']:
+        if True:
             feat_augmented = list(set(['PtCompPainHead', 'PtCompPainFace',
            'PtCompPainExt', 'PtCompPainTorsoTrunk', 'PtTenderHead',
            'PtTenderFace', 'PtTenderExt2', 'PtTenderTorsoTrunk',
@@ -236,6 +238,7 @@ class Dataset(DatasetTemplate):
          #    df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
 
         # remove (site), case ID, subject ID, control type
+        # df = df.drop(columns=['CaseID', 'StudySubjectID', 'ControlType'])
         df_encoded = one_hot_encode_df(df, numeric_cols=self.get_meta_keys())
         
         df_encoded.insert(
@@ -339,8 +342,66 @@ class Dataset(DatasetTemplate):
 
 
 if __name__ == '__main__':
+    from dataset1 import Dataset
     dset = Dataset()
-    df_train, df_tune, df_test = dset.get_data(save_csvs=True, run_perturbations=True)
+    df_train, df_tune, df_test = dset.get_data()
     print('successfuly processed data\nshapes:',
           df_train.shape, df_tune.shape, df_test.shape,
           '\nfeatures:', list(df_train.columns))
+
+    rf = RandomForestClassifier()
+    rf.fit(df_train.drop(columns=['outcome', "SITE"]), df_train['outcome'])
+    # concat tune and test
+    data_test = pd.concat((df_tune, df_test))
+    # calculate auc
+    auc = rf.score(data_test.drop(columns=['outcome', "SITE"]), data_test['outcome'])
+    # print the features ordered by importance
+    importances = pd.DataFrame({'feature': data_test.drop(columns=['outcome', "SITE"]).columns, 'importance': rf.feature_importances_}).sort_values('importance', ascending=False)
+    # save to csv the importances that are larger than 0
+    importances = importances[importances['importance'] > 0]
+    # read the line from data_dictionsary.md file that startswith a given feature name
+    def get_line_from_data_dictionary(feature_name):
+        with open('data_dictionary.md') as f:
+            for line in f.readlines():
+                if feature_name.split("_")[0] in line:
+                    d = line.split("|")[2]
+                    # remove space before and after the description
+                    d = d.strip()
+                    return d
+            else:
+                # find the feature description in the features_description.csv file
+                try:
+                    df =  pd.read_csv('features_description.csv').set_index('feature')
+                    # find the index that is a substring of the feature name
+                    feature_name = [i for i in df.index if i in feature_name][0]
+                    return df.loc[feature_name, 'description']
+                except Exception as e:
+                    return "no description"
+    # get the line for every feature in the importances
+    # write a function that remove all numbers from a string
+    def remove_numbers(s):
+        return ''.join([i for i in s if not i.isdigit()])
+    def get_prefix(s):
+        if s.startswith('PtTender'):
+            return 'PtTender'
+        elif s.startswith('Highris'):
+            return 'Highris'
+        elif s.startswith('OtherInjuries'):
+            return 'OtherInjuries'
+        elif s.startswith('PtCompPain'):
+            return 'PtCompPain'
+        elif s.startswith("MedsRecd"):
+            return "MedsRecd"
+        elif s.startswith("MinorInjuries"):
+            return "MinorInjuries"
+        elif s.startswith("AxialLoad"):
+            return "AxialLoad"
+        else:
+            return s
+
+    importances = importances.groupby(importances['feature'].apply(lambda x: get_prefix(remove_numbers(x.split("_")[0])))).sum().reset_index()
+
+    importances['data_dictionary'] = importances['feature'].apply(get_line_from_data_dictionary)
+    # sort by importance
+    importances = importances.sort_values('importance', ascending=False)
+    importances.to_csv('importances.csv', index=False)
