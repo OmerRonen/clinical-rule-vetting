@@ -9,7 +9,7 @@ def get_project_ids():
     return [
         f for f in os.listdir(rulevetting.PROJECTS_PATH)
         if os.path.isdir(oj(rulevetting.PROJECTS_PATH, f))
-           and not 'cache' in f
+           and (not 'cache' in f or "tig" in f)
     ]
 
 

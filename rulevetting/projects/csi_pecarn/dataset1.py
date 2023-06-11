@@ -98,7 +98,7 @@ class Dataset(DatasetTemplate):
        'TenderNeck2', 'Torticollis2', 'subinj_Head2', 'subinj_Face2',
        'subinj_Ext2', 'subinj_TorsoTrunk2']
         
-        df = pd.get_dummies(df, dummy_na=True, drop_first = True, columns = list(set(df.columns) - set(['SITE', 'CaseID', 'StudySubjectID', 'ControlType', 'AgeInYears', 'outcome'] + feat_av)))  # treat na as a separate category
+        df = pd.get_dummies(df,  drop_first = True, columns = list(set(df.columns) - set(['SITE', 'CaseID', 'StudySubjectID', 'ControlType', 'AgeInYears', 'outcome'] + feat_av)))  # treat na as a separate category
         agegroup_df = pd.get_dummies(pd.cut(df['AgeInYears'], bins=[0, 2, 6, 12, 16],
                                    labels=['infant', 'preschool', 'school_age', 'adolescents'],
                                    include_lowest=True), prefix='age')
@@ -108,8 +108,8 @@ class Dataset(DatasetTemplate):
         df = df.loc[:, (df != 0).any(axis=0)]
         
         # remove the _no columns
-        # if kwargs['drop_negative_columns']:
-         #    df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
+        if kwargs['drop_negative_columns']:
+            df.drop([k for k in df.keys() if k.endswith('_no')], inplace=True)
 
         # remove site, case ID, subject ID, control type
         feats = df.keys()[4:]

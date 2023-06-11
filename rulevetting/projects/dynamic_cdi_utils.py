@@ -1,6 +1,7 @@
 import os
 import copy
 import pickle
+import argparse
 from typing import Tuple
 
 import numpy as np
@@ -10,16 +11,34 @@ from imodels.tree.dfigs import D_FIGSClassifier
 from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegressionCV, LogisticRegression
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
-# from rulevetting.projects.csi_pecarn.dynamic_cdi import get_phases
-# from rulevetting.projects.csi_pecarn.dataset1 import Dataset
+METHODS = [FIGSClassifier, RandomForestClassifier, GreedyRuleListClassifier, DecisionTreeClassifier,
+           LogisticRegressionCV]
 
-from rulevetting.projects.tbi_pecarn.dynamic_cdi import get_phases
-from rulevetting.projects.tbi_pecarn.dataset import Dataset
 
-METHODS = [FIGSClassifier, RandomForestClassifier, GreedyRuleListClassifier, LogisticRegressionCV]
+def parse_args():
+    # add dataset argument
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", type=str, default="csi_pecarn")
+    args = parser.parse_args()
+    return args
+
+
+args = parse_args()
+DS = args.dataset
+
+if DS == "tbi_pecarn":
+    from rulevetting.projects.tbi_pecarn.dynamic_cdi import get_phases
+    from rulevetting.projects.tbi_pecarn.dataset import Dataset
+elif DS == "csi_pecarn":
+    from rulevetting.projects.csi_pecarn.dynamic_cdi import get_phases
+    from rulevetting.projects.csi_pecarn.dataset1 import Dataset
+elif DS == "iai_pecarn":
+    from rulevetting.projects.iai_pecarn.dynamic_cdi import get_phases
+    from rulevetting.projects.iai_pecarn.dataset import Dataset
 
 
 def plot_sensitivity_specificity_curve(preds, gt, ax=None):
@@ -163,11 +182,12 @@ def plot_predictions(X_test, y_test, d_figs, method, phases, phase):
     # ax.set_title(f"Phase {phase}")
 
 
-def get_dataset(impute: bool) -> Tuple[pd.DataFrame, pd.Series]:
+def get_dataset(impute: bool, permute_phase: bool) -> Tuple[pd.DataFrame, pd.Series]:
     """Get processed tbi data
 
     Args:
         impute (bool): if true missing values are imputed with mode
+        permute_phase (bool): if true the phases are permutred
 
     Returns:
         Tuple[pd.DataFrame, pd.Series]: X, y
@@ -180,12 +200,12 @@ def get_dataset(impute: bool) -> Tuple[pd.DataFrame, pd.Series]:
     y = data['outcome']
     # drop outcome
     X = data.drop(columns=['outcome'])
-    phases = get_phases(X.columns)
+    phases = get_phases(X.columns, permute_phases=permute_phase)
 
     last_phase = np.array(phases[np.max(list(phases.keys()))])
     # select last_phase columns in X
     X = X.iloc[:, last_phase]
-    phases = get_phases(X.columns)
+    phases = get_phases(X.columns, permute_phases=permute_phase)
     idx_first = get_phase_indices(X, phases[np.min(list(phases.keys()))])
     X, y = X.loc[idx_first, :], y[idx_first]
     # now impute missing values with mode
@@ -194,94 +214,169 @@ def get_dataset(impute: bool) -> Tuple[pd.DataFrame, pd.Series]:
     return X, y
 
 
-def run_sim(n_seeds, results_dir, max_rules=5):
-    X_imputed, y_imputed = get_dataset(impute=True)
-    X, y = get_dataset(impute=False)
+def get_phase(feature, data):
+    phases = get_phases(data.columns)
+    for phase in phases:
+        if feature in phases[phase]:
+            return phase + 1
 
-    phases = get_phases(X.columns)
+    return None
+
+
+def save_na_per_phase(results_dir):
+    data_train, data_tune, data_test = Dataset().get_data()
+    # join three splits
+    data = pd.concat([data_train, data_tune, data_test])
+    output = {"feature": [], "phase": [], "pct_na": []}
+    for i, feature in enumerate(data.columns):
+        if feature.split("_")[0] in output["feature"]:
+            continue
+        phase = get_phase(i, data)
+        if phase is None:
+            continue
+        output["feature"].append(feature.split("_")[0])
+        # output["feature"].append(feature)
+        output["phase"].append(phase)
+        output["pct_na"].append(data[feature].isna().mean())
+    # save to csv
+    df = pd.DataFrame(output)
+    # sort df by phase
+    df = df.sort_values(by="pct_na")
+    df.to_csv(os.path.join(results_dir, "na_per_phase.csv"), index=False)
+
+
+def log_phases(X, permute_phases):
+    phases = get_phases(X.columns, permute_phases)
     for phase in phases:
         print(f"phase {phase} shape: {get_phase_indices(X, phases[phase]).sum()}")
 
-    features_names = [f"{f}_phase_{_get_phase(i, phases)}" for i, f in enumerate(X.columns)]
-    methods_dict = {m.__name__: [] for m in METHODS + [D_FIGSClassifier]}
-    results_template = {phase: {"auc": copy.deepcopy(methods_dict), "auprc": copy.deepcopy(methods_dict)} for phase in
-                        phases}
-    results = {"current": copy.deepcopy(results_template), "first": copy.deepcopy(results_template),
-               "imputed": copy.deepcopy(results_template)}
+
+def add_na_dummy(df):
+    df_cpy = df.copy()
+    for column in df_cpy.columns:
+        if df_cpy[column].isna().any():
+            na_column = f'NaN_{column}'
+            df_cpy[na_column] = df[column].isna().astype(int)
+            df_cpy[column].fillna(0, inplace=True)
+    return df_cpy
+
+
+def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False):
+    X_imputed, y_imputed = get_dataset(impute=True, permute_phase=permute_phase)
+    X, y = get_dataset(impute=False, permute_phase=permute_phase)
+
+    # remove duplicates columns in X and X_imputed
+    # X = X.loc[:, ~X.columns.duplicated()]
+    # X_imputed = X_imputed.loc[:, ~X_imputed.columns.duplicated()]
+    # create a results dir direcotry if it does not exist
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
+    log_phases(X, permute_phase)
+    phases = get_phases(X.columns, permute_phases=permute_phase)
+    performance = {"dfigs": [], "figs_na": [], "figs_imputed": []}
+
     for seed in range(n_seeds):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=seed)
-        X_train_imputed, X_test_imputed, y_train_imputed, y_test_imputed = train_test_split(X_imputed, y_imputed,
-                                                                                            test_size=0.4,
-                                                                                            random_state=seed)
+        X_na = add_na_dummy(X)
 
-        phases_idx = get_phase_idx(X_test, phases)
+        # get train and test indices
+        train_idx, test_idx = train_test_split(np.arange(X.shape[0]), test_size=0.4, random_state=seed)
+        X_train, X_test, y_train, y_test = X.iloc[train_idx, :], X.iloc[test_idx, :], y.iloc[train_idx], y.iloc[
+            test_idx]
+        X_train_imputed, X_test_imputed = X_imputed.iloc[train_idx, :], X_imputed.iloc[test_idx, :]
+        X_na_train, X_na_test = X_na.iloc[train_idx, :], X_na.iloc[test_idx, :]
 
-        assert np.sum(y_test) == np.sum(y_test_imputed)
+        # set idx to be all the rows without any na values in X_test
+        idx = X_test.dropna().index
 
         d_figs = D_FIGSClassifier(phases=copy.deepcopy(phases), max_rules=max_rules)
-        d_figs.feature_names_ = features_names
-        d_figs.fit(X_train.values, y_train.values)
+        d_figs_auc = get_auc_score(d_figs, X_train, X_test, y_train, y_test, idx=idx)
+        figs_na = FIGSClassifier(max_rules=max_rules * len(phases))
+        figs_imp = FIGSClassifier(max_rules=max_rules * len(phases))
 
-        method_per_phase = fit_methods(X_train, X_train_imputed, y_train, copy.deepcopy(phases), METHODS)
-        for cdi_strategy in ["current", "first", "imputed"]:
-            scores_strategy = get_scores(cdi_strategy, phases_idx, method_per_phase, d_figs, X_test, X_test_imputed,
-                                         y_test)
-            # scores_seed_first = get_scores("first", phases, method_per_phase, d_figs, X_test, y_test)
-            # scores_seed_current = get_scores("current", phases, method_per_phase, d_figs, X_test, y_test)
-            # #
-            for phase in scores_strategy["auroc"]:
+        figs_na_auc = get_auc_score(figs_na, X_na_train, X_na_test, y_train, y_test, idx=idx)
+        figs_imp_auc = get_auc_score(figs_imp, X_train_imputed, X_test_imputed, y_train, y_test, idx=idx)
+        # add this to performance dict
+        performance["dfigs"].append(d_figs_auc)
+        performance["figs_na"].append(figs_na_auc)
+        performance["figs_imputed"].append(figs_imp_auc)
+    # make a bar plot for the three methods with error bars
+    fig, ax = plt.subplots()
+    methods_names = ["D-FIGS", "FIGS (na category)", "FIGS (imputed)"]
+    methods_average_auc = [np.mean(performance["dfigs"]), np.mean(performance["figs_na"]),
+                           np.mean(performance["figs_imputed"])]
+    methods_std_auc = [np.std(performance["dfigs"]) / np.sqrt(n_seeds),
+                       np.std(performance["figs_na"]) / np.sqrt(n_seeds),
+                       np.std(performance["figs_imputed"]) / np.sqrt(n_seeds)]
+    ax.bar(methods_names, methods_average_auc, yerr=methods_std_auc, align='center', alpha=0.5, ecolor='black',
+           capsize=10)
+    # set the y-axis limits
+    ax.set_ylim(0.5, 1)
+    ax.set_ylabel('AUC')
+    ttl = "AUC per method on last phase patients (permuted phases)" if permute_phase else "AUC per method on last phase patients"
+    ax.set_title(ttl)
+    # save the figure
+    plt.savefig(os.path.join(results_dir, "bar_plot_figs.png"), dpi=300)
+    plt.close()
 
-                for m in scores_strategy["auroc"][phase]:
-                    results[cdi_strategy][phase]["auc"][m].append(scores_strategy["auroc"][phase][m])
-                    # results["current"][phase]["auc"][m].append(scores_seed_current["auroc"][phase][m])
-                    # results["current"][phase]["auprc"][m].append(scores_seed_current["auprc"][phase][m])
-                    #
-                    # results["first"][phase]["auc"][m].append(scores_seed_first["auroc"][phase][m])
-                    # results["first"][phase]["auprc"][m].append(scores_seed_first["auprc"][phase][m])
+    # d_figs.feature_names_ = features_names
+    # d_figs.fit(X_train.values, y_train.values)
 
-        def plot_curves(curve_type, analysis_type):
-            fig, axs = plt.subplots(1, 3, figsize=(15, 15))
-            plt_func = plot_rocs if curve_type == "auc" else plot_prc
-            phase_methods_ = 0 if analysis_type == "first" else None
-            title = f"{curve_type.upper()} for D_FIGS vs different methods trained on {analysis_type} phase variables"
-            fig_name = f"{analysis_type}_{curve_type}.png"
-            for phase, phase_vars in phases.items():
-                phase_methods = method_per_phase[phase] if phase_methods_ is None else method_per_phase[0]
-                phase_vars = phase_vars if phase_methods_ is None else phases[0]
-                phase_idx = get_phase_indices(X_test, phase_vars)
-                if phase + 1 in phases:
-                    phase_idx = np.logical_and(phase_idx, np.invert(get_phase_indices(X_test, phases[phase + 1])))
-                X_test_phase = X_test.iloc[:, phase_vars]
-                preds = {m: clf.predict_proba(X_test_phase.loc[phase_idx, :].values)[:, 1] for m, clf in
-                         phase_methods.items()}
-                if phase > 0:
-                    preds[d_figs.__class__.__name__] = d_figs.predict_proba(X_test.loc[phase_idx, :].values)[:, 1]
-                plt_func(preds, y_test[phase_idx], ax=axs[phase])
-                axs[phase].set_title(f"Phase {phase} (# of patients: {phase_idx.sum()})")
-                loc = "lower right" if curve_type == "auc" else "upper right"
-                axs[phase].legend(loc=loc)
-            plt.suptitle(title)
-            plt.savefig(f"{results_dir}/{fig_name}")
-
-        if seed == 1:
-            plot_curves("auc", "first")
-            plot_curves("auc", "current")
-            plot_curves("auprc", "first")
-            plot_curves("auprc", "current")
-
-            plot_predictions(X_test, y_test, d_figs, method_per_phase[0]['FIGSClassifier'], phases, phase=0)
-            plt.savefig(os.path.join(results_dir, "phase_1_predictions.png"))
-            plt.close()
-            plot_predictions(X_test, y_test, d_figs, method_per_phase[1]["FIGSClassifier"], phases, phase=1)
-            plt.savefig(os.path.join(results_dir, "phase_2_predictions.png"))
-            plt.close()
-            plot_predictions(X_test, y_test, d_figs, method_per_phase[2]["FIGSClassifier"], phases, phase=2)
-            plt.savefig(os.path.join(results_dir, "phase_2_predictions.png"))
-            plt.close()
+    # method_per_phase = fit_methods(X_train, X_train_imputed, y_train, copy.deepcopy(phases), METHODS)
+    # for cdi_strategy in ["current", "first", "imputed"]:
+    #     scores_strategy = get_scores(cdi_strategy, phases_idx, method_per_phase, d_figs, X_test, X_test_imputed,
+    #                                  y_test, permute_phase)
+    #     for phase in scores_strategy["auroc"]:
+    #
+    #         for m in scores_strategy["auroc"][phase]:
+    #             results[cdi_strategy][phase]["auc"][m].append(scores_strategy["auroc"][phase][m])
+    #
+    # def plot_curves(curve_type, analysis_type):
+    #     fig, axs = plt.subplots(1, 3, figsize=(15, 15))
+    #     plt_func = plot_rocs if curve_type == "auc" else plot_prc
+    #     phase_methods_ = 0 if analysis_type == "first" else None
+    #     title = f"{curve_type.upper()} for D_FIGS vs different methods trained on {analysis_type} phase variables"
+    #     fig_name = f"{analysis_type}_{curve_type}.png"
+    #     for phase, phase_vars in phases.items():
+    #         phase_methods = method_per_phase[phase] if phase_methods_ is None else method_per_phase[0]
+    #         phase_vars = phase_vars if phase_methods_ is None else phases[0]
+    #         phase_idx = get_phase_indices(X_test, phase_vars)
+    #         if phase + 1 in phases:
+    #             phase_idx = np.logical_and(phase_idx, np.invert(get_phase_indices(X_test, phases[phase + 1])))
+    #         X_test_phase = X_test.iloc[:, phase_vars]
+    #         preds = {m: clf.predict_proba(X_test_phase.loc[phase_idx, :].values)[:, 1] for m, clf in
+    #                  phase_methods.items()}
+    #         if phase > 0:
+    #             preds[d_figs.__class__.__name__] = d_figs.predict_proba(X_test.loc[phase_idx, :].values)[:, 1]
+    #         plt_func(preds, y_test[phase_idx], ax=axs[phase])
+    #         axs[phase].set_title(f"Phase {phase} (# of patients: {phase_idx.sum()})")
+    #         loc = "lower right" if curve_type == "auc" else "upper right"
+    #         axs[phase].legend(loc=loc)
+    #     plt.suptitle(title)
+    #     plt.savefig(f"{results_dir}/{fig_name}")
+    #
+    # if seed == 1:
+    #     plot_curves("auc", "first")
+    #     plot_curves("auc", "current")
+    #     plot_curves("auprc", "first")
+    #     plot_curves("auprc", "current")
+    #
+    #     plot_predictions(X_test, y_test, d_figs, method_per_phase[0]['FIGSClassifier'], phases, phase=0)
+    #     plt.savefig(os.path.join(results_dir, "phase_1_predictions.png"))
+    #     plt.close()
+    #     plot_predictions(X_test, y_test, d_figs, method_per_phase[1]["FIGSClassifier"], phases, phase=1)
+    #     plt.savefig(os.path.join(results_dir, "phase_2_predictions.png"))
+    #     plt.close()
+    #     try:
+    #         plot_predictions(X_test, y_test, d_figs, method_per_phase[2]["FIGSClassifier"], phases, phase=2)
+    #         plt.savefig(os.path.join(results_dir, "phase_2_predictions.png"))
+    #         plt.close()
+    #     except KeyError:
+    #         continue
 
     # save aucs to pickle
-    with open(f"{results_dir}/results.pkl", "wb") as f:
-        pickle.dump(results, f)
+    with open(f"{results_dir}/performance.pkl", "wb") as f:
+        pickle.dump(performance, f)
 
 
 def plot_performance_results(results_dir):
@@ -313,7 +408,7 @@ def plot_performance_results(results_dir):
             # set the same y limits for all plots
             for ax in axs:
                 # ax.set_ylim(min_y, max_y + 0.05)
-                ax.set_ylim(0.4, 1)
+                ax.set_ylim(0.2, 1)
 
             # k = "oracle" if key == "current" else "phase_1"
             ttl = f"cdi strategy - {key} phase"
@@ -351,7 +446,8 @@ def get_phase_idx(X_test, phases):
 def get_scores(cdi_strategy: str, phases_idx: dict, fitted_methods: dict, d_figs: D_FIGSClassifier,
                X_test: pd.DataFrame,
                X_test_imputed: pd.DataFrame,
-               y_test: pd.Series) -> dict:
+               y_test: pd.Series,
+               permute_phases: bool) -> dict:
     """AUC and AUPRC for each phase for each method
 
     Args:
@@ -364,12 +460,13 @@ def get_scores(cdi_strategy: str, phases_idx: dict, fitted_methods: dict, d_figs
         d_figs (D_FIGSClassifier): fitted dynamic FIGS classifier
         X_test (pd.DataFrame): test data
         y_test (pd.Series): test labels
+        permute_phases (bool): whether to permute phases
 
     Returns:
         dict: AUC and AUPRC for each phase for each method
 
     """
-    phases = get_phases(X_test.columns)
+    phases = get_phases(X_test.columns, permute_phases)
     phases['imputed'] = phases[len(phases) - 1]
     aucs_phase = {}
     aucprs_phase = {}
@@ -395,9 +492,23 @@ def get_scores(cdi_strategy: str, phases_idx: dict, fitted_methods: dict, d_figs
     return {"auroc": aucs_phase, "auprc": aucprs_phase}
 
 
+def get_auc_score(cls, X_train, X_test, y_train, y_test, idx=None):
+    cls.fit(X_train.values, y_train)
+    if idx is not None:
+        return roc_auc_score(y_test[idx], cls.predict_proba(X_test.loc[idx, :].values)[:, 1])
+    return roc_auc_score(y_test, cls.predict_proba(X_test.values)[:, 1])
+
+
 def main():
-    run_sim(20, os.path.join("results", "dynamic_figs", "csi_pecarn"))
-    plot_performance_results(os.path.join("results", "dynamic_figs", "csi_pecarn"))
+    n_seeds = 20
+    results_dir = os.path.join("results", "dynamic_figs", DS)
+    run_sim(n_seeds, results_dir, permute_phase=False)
+    # plot_performance_results(results_dir)
+
+    results_dir = os.path.join("results", "dynamic_figs_permuted", DS)
+    run_sim(n_seeds, results_dir, permute_phase=True)
+    # plot_performance_results(results_dir)
+
 
 if __name__ == '__main__':
     main()

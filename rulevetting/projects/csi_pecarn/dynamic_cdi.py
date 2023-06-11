@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 
 
-def get_phases(columns):
+def get_phases(columns, permute_phases=False):
     df_label = pd.read_csv('data/csi_pecarn/csi_vars_with_labels.csv')
     # df_label = df_label.rename(
     #     columns={'Time (Aaron) 1= Prehospital, 2=primary survey, 3= first 1 hour, 4= > 1hour': 'timestamp'})
@@ -14,9 +14,17 @@ def get_phases(columns):
 
     phases = {0: [], 1: [], 2: []}  # 0: prehospital, 1: hospital
 
-    phase_1_features = time_distribution[1]
-    phase_2_features = time_distribution[1] + time_distribution[2]
-    phase_3_features = time_distribution[1] + time_distribution[2] + time_distribution[3] #+ time_distribution[4]
+    phase_1_idx = 1
+    phase_2_idx = 2
+    phase_3_idx = 3
+    if permute_phases:
+        phase_1_idx = 2
+        phase_2_idx = 3
+        phase_3_idx = 1
+
+    phase_1_features = time_distribution[phase_1_idx]
+    phase_2_features = time_distribution[phase_1_idx] + time_distribution[phase_2_idx]
+    phase_3_features = time_distribution[phase_1_idx] + time_distribution[phase_2_idx] + time_distribution[phase_3_idx] #+ time_distribution[4]
     for feature in phase_1_features:
         # get all columns names that start with feature
         # set of new indices
@@ -35,9 +43,9 @@ def get_phases(columns):
         phases[2] += new_indices
 
     # convert to numpy arrays
-    phases[0] = np.array(phases[0])
-    phases[1] = np.array(phases[1])
-    phases[2] = np.array(phases[2])
+    phases[0] = np.array(list(set(phases[0])))
+    phases[1] = np.array(list(set(phases[1])))
+    phases[2] = np.array(list(set(phases[2])))
 
     return phases
 
