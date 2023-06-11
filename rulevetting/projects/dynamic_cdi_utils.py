@@ -290,7 +290,7 @@ def run_sim(n_seeds, results_dir, max_rules=12, permute_phase=False):
         idx = X_test.dropna().index
 
         d_figs = D_FIGSClassifier(phases=copy.deepcopy(phases), max_rules=max_rules)
-        d_figs_auc = get_auc_score(d_figs, X_train, X_test, y_train, y_test, idx=idx)
+        d_figs_auc = get_auc_score(d_figs, X_train_imputed, X_test, y_train, y_test, idx=idx)
         figs_na = FIGSClassifier(max_rules=max_rules * len(phases))
         figs_imp = FIGSClassifier(max_rules=max_rules * len(phases))
 
@@ -496,17 +496,18 @@ def get_auc_score(cls, X_train, X_test, y_train, y_test, idx=None):
     cls.fit(X_train.values, y_train)
     if idx is not None:
         return roc_auc_score(y_test[idx], cls.predict_proba(X_test.loc[idx, :].values)[:, 1])
+    # get phase of first split
     return roc_auc_score(y_test, cls.predict_proba(X_test.values)[:, 1])
 
 
 def main():
     n_seeds = 20
-    results_dir = os.path.join("results", "dynamic_figs", DS)
+    results_dir = os.path.join("results", "dynamic_figs_imputed", DS)
     run_sim(n_seeds, results_dir, permute_phase=False)
     # plot_performance_results(results_dir)
 
-    results_dir = os.path.join("results", "dynamic_figs_permuted", DS)
-    run_sim(n_seeds, results_dir, permute_phase=True)
+    # results_dir = os.path.join("results", "dynamic_figs_permuted", DS)
+    # run_sim(n_seeds, results_dir, permute_phase=True)
     # plot_performance_results(results_dir)
 
 
