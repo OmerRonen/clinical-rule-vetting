@@ -592,7 +592,7 @@ def get_scores(cdi_strategy: str, phases_idx: dict, fitted_methods: dict, d_figs
 def get_auc_score(cls, X_train, X_test, y_train, y_test, idx=None,sample_weight = None):
     print(X_train)
     if isinstance(cls,D_FIGSClassifier):
-        cls.fit(X_train.values, y_train,use_class_weight = True)
+        cls.fit(X_train.values.astype(float), y_train,use_class_weight = True)
     else:
         cls.fit(X_train.values.astype(float), y_train,sample_weight = sample_weight) #values
     if idx is not None:
